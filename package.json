@@ -1,0 +1,39 @@
+{
+  "name": "muscle-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "prisma:migrate": "./node_modules/.bin/prisma migrate dev --schema=./prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.11.1",
+    "@next-auth/prisma-adapter": "^1.0.7",
+    "@prisma/client": "^6.19.0",
+    "autoprefixer": "^10.4.22",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "framer-motion": "^12.23.24",
+    "lucide-react": "^0.553.0",
+    "next": "16.0.1",
+    "next-auth": "^4.24.13",
+    "postcss": "^8.5.6",
+    "prisma": "^6.19.0",
+    "react": "19.2.0",
+    "react-calendar": "^6.0.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.1",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5"
+  }
+}
