@@ -5,11 +5,19 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dumbbell, Loader2 } from 'lucide-react';
 
+interface Workout {
+  id: string;
+  type: string;
+  weight: number;
+  reps: number;
+  expGain: number;
+}
+
 export default function TrainPage() {
   const [type, setType] = useState('');
   const [weight, setWeight] = useState('');
   const [reps, setReps] = useState('');
-  const [workouts, setWorkouts] = useState<any[]>([]);
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(false);
   const [bonus, setBonus] = useState<number | null>(null); // EXPボーナス演出
   const router = useRouter();
@@ -24,7 +32,10 @@ export default function TrainPage() {
   };
 
   useEffect(() => {
-    fetchWorkouts();
+    const loadWorkouts = async () => {
+      await fetchWorkouts();
+    };
+    loadWorkouts();
   }, []);
 
   // 登録処理
