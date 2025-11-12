@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Calendar from 'react-calendar';
+import Calendar, { Value } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Award, XCircle } from 'lucide-react';
@@ -9,12 +9,14 @@ import { Trophy, Award, XCircle } from 'lucide-react';
 // 🎚️ 経験値バー
 function ExpBar({ exp, level }: { exp: number; level: number }) {
   const expToNext = 100;
-  const percent = Math.min((exp % expToNext) / expToNext * 100, 100);
+  const percent = Math.min(((exp % expToNext) / expToNext) * 100, 100);
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-lime-400">Lv.{level}</h2>
-        <p className="text-sm text-gray-300">{exp % expToNext} / {expToNext} EXP</p>
+        <p className="text-sm text-gray-300">
+          {exp % expToNext} / {expToNext} EXP
+        </p>
       </div>
       <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden mt-1">
         <motion.div
@@ -29,7 +31,13 @@ function ExpBar({ exp, level }: { exp: number; level: number }) {
 }
 
 // 🧍‍♂️ プレイヤーカード
-function PlayerCard({ user, onAvatarClick }: { user: any; onAvatarClick: () => void }) {
+function PlayerCard({
+  user,
+  onAvatarClick,
+}: {
+  user: any;
+  onAvatarClick: () => void;
+}) {
   return (
     <div className="flex items-center gap-6 bg-white/10 p-5 rounded-3xl border border-white/20 shadow-xl">
       <div
@@ -47,15 +55,27 @@ function PlayerCard({ user, onAvatarClick }: { user: any; onAvatarClick: () => v
         <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
           {user.name || '筋肉見習い'}
         </h1>
-        <p className="text-lime-300 text-lg font-semibold mt-1">ベンチの勇者</p>
+        <p className="text-lime-300 text-lg font-semibold mt-1">
+          ベンチの勇者
+        </p>
         <p className="text-gray-400 text-sm mt-2">Lv.{user.level}</p>
       </div>
     </div>
   );
 }
 
-// 🎮 アバター選択モーダル（獲得済みのみ表示）
-function AvatarModal({ isOpen, onClose, user, onSelected }: any) {
+// 🎮 アバター選択モーダル
+function AvatarModal({
+  isOpen,
+  onClose,
+  user,
+  onSelected,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  user: any;
+  onSelected: (avatar: string) => void;
+}) {
   if (!isOpen) return null;
 
   const handleSelect = async (avatar: string) => {
@@ -113,14 +133,18 @@ function RewardTickets({ user, refresh }: { user: any; refresh: () => void }) {
     });
     if (res.ok) {
       alert(`${ticket} を使用しました！`);
-      refresh(); // データ再取得
+      refresh();
     }
   };
 
   if (!user.rewards || user.rewards.length === 0) {
-    return(
-    <><h3 className="text-lg text-white mb-2 font-semibold">🎁 報酬チケット</h3><p className="text-gray-400">まだ報酬チケットがありません。</p></>
-  )}
+    return (
+      <>
+        <h3 className="text-lg text-white mb-2 font-semibold">🎁 報酬チケット</h3>
+        <p className="text-gray-400">まだ報酬チケットがありません。</p>
+      </>
+    );
+  }
 
   return (
     <div className="mt-6">
@@ -173,10 +197,8 @@ function Achievements() {
 
 export default function HomePage() {
   const [user, setUser] = useState<any>(null);
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState<Date>(new Date());
   const [showModal, setShowModal] = useState(false);
-
-  const userId = 'cmhuihx5a0000js5mj6ath747';
 
   const fetchUser = async () => {
     try {
@@ -209,7 +231,17 @@ export default function HomePage() {
       <hr className="border-white/20 my-4" />
       <h2 className="text-lg mb-2 font-semibold">📅 トレーニングカレンダー</h2>
       <div className="bg-white/10 backdrop-blur-md rounded-xl p-3">
-        <Calendar onChange={setDate} value={date} className="!bg-transparent !text-white" />
+        <Calendar
+          onChange={(value: Value) => {
+            if (value instanceof Date) {
+              setDate(value);
+            } else if (Array.isArray(value) && value[0]) {
+              setDate(value[0]);
+            }
+          }}
+          value={date}
+          className="!bg-transparent !text-white"
+        />
       </div>
 
       <Achievements />
