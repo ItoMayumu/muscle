@@ -1,45 +1,49 @@
-'use client';
+"use client";
 
-import { useSearchParams, useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
-import { Award } from 'lucide-react';
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 
-
-export default function RewardPage() {
+// 内側：実際の画面ロジック
+function RewardPageInner() {
   const params = useSearchParams();
   const router = useRouter();
-const { data: session } = useSession();
-  const oldLevel = Number(params.get('oldLevel')) || 0;
-  const newLevel = Number(params.get('newLevel')) || oldLevel + 1;
-  const expGain = Number(params.get('expGain')) || 0;
-  const userId = session?.user?.id;
+  const { data: session } = useSession();
+
+  const oldLevel = Number(params.get("oldLevel")) || 0;
+  const newLevel = Number(params.get("newLevel")) || oldLevel + 1;
+  const expGain = Number(params.get("expGain")) || 0;
+  const userId = session?.user?.id ?? null;
 
   const [newAvatar, setNewAvatar] = useState<string | null>(null);
 
   // レベルアップに応じて新アバターを解放
   useEffect(() => {
+    if (!userId) return; // セッション未取得時は何もしない
+
     const avatarRewards: Record<number, string> = {
-      3: '/avatars/level3.png',
-      5: '/avatars/level5.png',
-      7: '/avatars/level7.png',
-      10: '/avatars/level10.png',
+      3: "/avatars/level3.png",
+      5: "/avatars/level5.png",
+      7: "/avatars/level7.png",
+      10: "/avatars/level10.png",
     };
 
     const reward = avatarRewards[newLevel];
     if (reward) {
       setNewAvatar(reward);
-      fetch('/api/avatar/unlock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      fetch("/api/avatar/unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, avatar: reward }),
+      }).catch((err) => {
+        console.error("Failed to unlock avatar:", err);
       });
     }
 
-    const timer = setTimeout(() => router.push('/'), 6000);
+    const timer = setTimeout(() => router.push("/"), 6000);
     return () => clearTimeout(timer);
-  }, [newLevel, router]);
+  }, [newLevel, router, userId]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-white bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]">
@@ -73,5 +77,20 @@ const { data: session } = useSession();
         )}
       </div>
     </div>
+  );
+}
+
+// 外側：Suspense でラップしたコンポーネントを default export
+export default function RewardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-white bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]">
+          <p className="text-lg">Loading reward...</p>
+        </div>
+      }
+    >
+      <RewardPageInner />
+    </Suspense>
   );
 }
