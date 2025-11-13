@@ -1,39 +1,59 @@
-import NextAuth from "next-auth";
+import NextAuth, { type AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
-import { compare } from "bcryptjs"; // ✅ 追加
+import { compare } from "bcryptjs";
 
-const handler = NextAuth({
-  adapter: PrismaAdapter(prisma),
+export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        name: { label: "ユーザー名", type: "text" },
-        password: { label: "パスワード", type: "password" },
+        name: { label: "Name", type: "text" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.name || !credentials?.password) return null;
+        // null ガード
+        if (!credentials?.name || !credentials?.password) {
+          return null;
+        }
 
         const user = await prisma.user.findUnique({
           where: { name: credentials.name },
         });
 
-        if (!user || !user.password) return null;
+        if (!user || !user.password) {
+          return null;
+        }
 
         const isValid = await compare(credentials.password, user.password);
         if (!isValid) return null;
 
-        return user;
+        return { id: user.id, name: user.name };
       },
     }),
   ],
-  session: { strategy: "jwt" },
-  pages: {
-    signIn: "/login",
-  },
-  secret: process.env.NEXTAUTH_SECRET, // ✅ これも必須！
-});
 
+  session: { strategy: "jwt" },
+
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        // 型拡張済みなので OK
+        token.id = user.id as string;
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (session.user && token.id) {
+        session.user.id = token.id;
+      }
+      return session;
+    },
+  },
+
+  pages: { signIn: "/login" },
+};
+
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

@@ -17,15 +17,9 @@ model User {
   ownedAvatars String[] @default([])
   rewards      String[] @default([])
   createdAt    DateTime @default(now())
+  badges        String[] @default([]) 
   workouts     Workout[]
 }
-git init
-git add .
-git commit -m "first deploy"
-git branch -M main
-git remote add origin https://github.com/<あなたのユーザー名>/<リポジトリ名>.git
-git push -u origin main
-
 
 model Workout {
   id        String   @id @default(cuid())

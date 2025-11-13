@@ -1,6 +1,8 @@
 // app/api/users/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 // POST: 新しいユーザーを作成
 export async function POST(request: Request) {
@@ -13,7 +15,7 @@ export async function POST(request: Request) {
 
   try {
     const user = await prisma.user.create({
-      data: { name, email },
+      data: { name },
     });
     return NextResponse.json(user);
   } catch (e) {
@@ -22,17 +24,23 @@ export async function POST(request: Request) {
   }
 }
 
-// GET: 全ユーザー取得
+
+
 export async function GET() {
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      level: true,
-      exp: true,
-      avatar: true,
-      ownedAvatars: true, // ✅ ここを忘れずに！
-    },
+  const session = await getServerSession(authOptions);
+
+  console.log("🟢 Session data:", session); // ← ここ！
+
+  if (!session?.user?.name) {
+    console.log("🔴 No session or user name");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { name: session.user.name },
   });
-  return NextResponse.json(users);
+
+  console.log("🟢 Found user:", user); // ← ここ！
+
+  return NextResponse.json(user);
 }

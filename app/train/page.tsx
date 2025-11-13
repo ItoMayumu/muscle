@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dumbbell, Loader2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 interface Workout {
   id: string;
@@ -21,15 +22,26 @@ export default function TrainPage() {
   const [loading, setLoading] = useState(false);
   const [bonus, setBonus] = useState<number | null>(null); // EXPボーナス演出
   const router = useRouter();
+  const {data: session,status} = useSession();
+  const userId = session?.user?.id;
+  const TRAIN_TYPES = [
+  "ベンチプレス",
+  "スクワット",
+  "デッドリフト",
+  "ショルダープレス",
+  "ラットプルダウン",
+  "アームカール",
+  "レッグプレス"
+];
 
-  const userId = 'cmhuihx5a0000js5mj6ath747'; // あなたのUser.idを固定でOK
+const fetchWorkouts = async () => {
+  if (!userId) return; // session が来るまで待つ
 
-  // 過去のトレーニング履歴を取得
-  const fetchWorkouts = async () => {
-    const res = await fetch('/api/workouts');
-    const data = await res.json();
-    setWorkouts(data);
-  };
+  const res = await fetch(`/api/workouts?userId=${userId}`);
+  const data = await res.json();
+  setWorkouts(data);
+};
+
 
   useEffect(() => {
     const loadWorkouts = async () => {
@@ -109,13 +121,25 @@ export default function TrainPage() {
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="flex flex-col gap-4">
-          <input
-            placeholder="種目（例: ベンチプレス）"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            required
-            className="p-3 rounded-lg bg-white/10 border border-white/20 focus:outline-none focus:ring-2 focus:ring-lime-400 text-white placeholder-gray-400"
-          />
+          <select
+  value={type}
+  onChange={(e) => setType(e.target.value)}
+  required
+  className="p-3 rounded-lg bg-white/10 border border-white/20
+             focus:outline-none focus:ring-2 focus:ring-lime-400
+             text-white"
+>
+  <option value="" disabled className="text-gray-800">
+    種目を選択してください
+  </option>
+
+  {TRAIN_TYPES.map((t) => (
+    <option key={t} value={t} className="text-black">
+      {t}
+    </option>
+  ))}
+</select>
+
           <input
             type="number"
             placeholder="重量 (kg)"

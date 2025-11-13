@@ -4,15 +4,17 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Award } from 'lucide-react';
+import { useSession } from "next-auth/react";
+
 
 export default function RewardPage() {
   const params = useSearchParams();
   const router = useRouter();
-
+const { data: session } = useSession();
   const oldLevel = Number(params.get('oldLevel')) || 0;
   const newLevel = Number(params.get('newLevel')) || oldLevel + 1;
   const expGain = Number(params.get('expGain')) || 0;
-  const userId = 'cmhuihx5a0000js5mj6ath747'; // ←固定でOK（将来的にログイン対応）
+  const userId = session?.user?.id;
 
   const [newAvatar, setNewAvatar] = useState<string | null>(null);
 
